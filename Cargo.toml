@@ -1,0 +1,7 @@
+[package]
+name = "rsenv"
+version = "0.1.0"
+authors = ["Chris Dawes <cmsd2@cantab.net>"]
+
+[dependencies]
+clap = "*"

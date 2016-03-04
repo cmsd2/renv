@@ -6,7 +6,9 @@ use std::io;
 pub enum Error {
     Error(String),
     StringError,
-    IoError(io::ErrorKind)
+    IoError(io::ErrorKind),
+    FileNotFound(String),
+    Killed
 }
 
 pub type Result<T> = result::Result<T, Error>;

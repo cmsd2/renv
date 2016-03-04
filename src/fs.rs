@@ -27,3 +27,12 @@ pub fn make_dirs(path: &Path) -> io::Result<()> {
 
     Ok(())
 }
+
+pub fn get_installed_env_file(env_name: &str) -> ::result::Result<PathBuf> {
+    let mut env_dir = try!(::os::get_config_dir());
+    let env_file_name = format!("{}.env", env_name);
+
+    env_dir.push(env_file_name);
+
+    Ok(env_dir)
+}

@@ -10,6 +10,7 @@ pub enum REnvError {
     StringError,
     IoError(io::ErrorKind),
     FileNotFound(String),
+    FileExists(String),
     Killed,
     ChildExited(i32),
     PropertiesError(String, Option<usize>),

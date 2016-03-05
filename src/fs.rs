@@ -98,6 +98,34 @@ pub fn load_installed_env_file(env_name: &str) -> Result<REnv> {
     Ok(REnv::new(vars_map))
 }
 
+pub fn create_installed_env_file_from_template(env_name: &str) -> Result<()> {
+    let env_file_path = try!(get_installed_env_file(env_name));
+    try!(assert_file_not_exists(&env_file_path));
+
+    try!(write_env(&env_file_path, &new_env_from_template(env_name)));
+
+    Ok(())
+}
+
+pub fn new_env_from_template(env_name: &str) -> REnv {
+    let mut env = REnv::new_empty();
+
+    env.vars.insert("RENV".to_owned(), env_name.to_owned());
+
+    env
+}
+
+pub fn write_env(env_file_path: &Path, env: &REnv) -> Result<()> {
+    let f = try!(fs::File::create(env_file_path));
+    let mut writer = PropertiesWriter::new(io::BufWriter::new(f));
+    for (k, v) in &env.vars {
+        try!(writer.write(&k, &v));
+    }
+    try!(writer.flush());
+
+    Ok(())
+}
+
 pub fn edit_installed_env_file(env_name: &str) -> Result<()> {
     let env_file_path = try!(get_installed_env_file(env_name));
     try!(assert_file_exists(&env_file_path));
@@ -112,6 +140,14 @@ pub fn edit_installed_env_file(env_name: &str) -> Result<()> {
 pub fn assert_file_exists(file_path: &Path) -> Result<()> {
     if !file_path.exists() {
         Err(REnvError::FileNotFound(file_path.to_string_lossy().into_owned()))
+    } else {
+        Ok(())
+    }
+}
+
+pub fn assert_file_not_exists(file_path: &Path) -> Result<()> {
+    if file_path.exists() {
+        Err(REnvError::FileExists(file_path.to_string_lossy().into_owned()))
     } else {
         Ok(())
     }

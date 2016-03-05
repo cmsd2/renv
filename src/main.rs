@@ -47,6 +47,18 @@ fn main() {
                          .help("name of environment to show")
                          )
                     )
+        .subcommand(SubCommand::with_name("new")
+                    .about("Creates new environment")
+                    .author("Chris Dawes <cmsd2@cantab.net>")
+                    .version("1.0")
+                    .arg(Arg::with_name("name")
+                         .short("n")
+                         .required(true)
+                         .takes_value(true)
+                         .index(1)
+                         .help("name of environment to create and edit")
+                         )
+                    )
         .subcommand(SubCommand::with_name("edit")
                     .about("Starts editor for installed environment")
                     .author("Chris Dawes <cmsd2@cantab.net>")
@@ -116,6 +128,7 @@ fn run_subcommand(matches: &ArgMatches) -> Result<()> {
         ("exec", Some(sub_matches)) => exec_command(sub_matches),
         ("show", Some(sub_matches)) => show_env(sub_matches),
         ("edit", Some(sub_matches)) => edit_env(sub_matches),
+        ("new", Some(sub_matches)) => new_env(sub_matches),
         _ => Ok(())
     }
 }
@@ -168,6 +181,16 @@ fn show_env(args: &ArgMatches) -> Result<()> {
 fn edit_env(args: &ArgMatches) -> Result<()> {
     let env_name = args.value_of("name").unwrap();
 
+    try!(fs::edit_installed_env_file(env_name));
+
+    Ok(())
+}
+
+fn new_env(args: &ArgMatches) -> Result<()> {
+    let env_name = args.value_of("name").unwrap();
+
+    try!(fs::create_installed_env_file_from_template(env_name));
+    
     try!(fs::edit_installed_env_file(env_name));
 
     Ok(())

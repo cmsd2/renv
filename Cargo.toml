@@ -8,6 +8,7 @@ repository = "https://github.com/cmsd2/rsenv"
 
 [dependencies]
 clap = "2.1.2"
+java-properties = "0.1.1"
 
 [features]
 unstable = []

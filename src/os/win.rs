@@ -11,7 +11,7 @@ pub fn get_roaming_dir() -> Result<PathBuf> {
             Ok(Path::new(&os_str).to_path_buf())
         },
         None => {
-            Err(RsEnvError::Error("couldn't get appdata dir".to_owned()))
+            Err(REnvError::Error("couldn't get appdata dir".to_owned()))
         }
     }
 }
@@ -19,7 +19,7 @@ pub fn get_roaming_dir() -> Result<PathBuf> {
 pub fn get_config_dir() -> Result<PathBuf> {
     let mut p = try!(get_roaming_dir());
 
-    p.push("rsenv");
+    p.push("renv");
     p.push("envs");
 
     try!(fs::make_dirs(&p));

@@ -1,10 +1,10 @@
 [package]
-name = "rsenv"
+name = "renv"
 version = "0.1.0"
 authors = ["Chris Dawes <cmsd2@cantab.net>"]
 license = "MIT/Apache-2.0"
 description = "Environment variable loader"
-repository = "https://github.com/cmsd2/rsenv"
+repository = "https://github.com/cmsd2/renv"
 
 [dependencies]
 clap = "2.1.2"

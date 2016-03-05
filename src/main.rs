@@ -210,7 +210,7 @@ fn get_envs_list() -> Result<Vec<String>> {
     Ok(maybe_env_list)
 }
 
-fn print_env(env: &fs::RsEnv) {
+fn print_env(env: &fs::REnv) {
     for (k,v) in &env.vars {
         println!("{} = {}", k, v);
     }

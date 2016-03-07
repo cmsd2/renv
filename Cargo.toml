@@ -1,6 +1,6 @@
 [package]
 name = "renv"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Chris Dawes <cmsd2@cantab.net>"]
 license = "MIT/Apache-2.0"
 description = "Environment variable loader"

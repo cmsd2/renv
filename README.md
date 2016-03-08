@@ -8,6 +8,12 @@ Environment variable values are stored in .env files at a well known location:
 1. Windows: %APPDATA%\renv\envs\
 2. Linux/Unix: $HOME/.config/renv/envs/
 
+## Installation
+
+1. install rust from https://www.rust-lang.org/
+2. ensure you have installed your platform's matching compiler toolchain (gcc, mingw or msvc)
+2. run ```cargo install renv```
+
 ## Platforms
 
 REnv supports windows, linux and unix.

@@ -1,9 +1,11 @@
 extern crate clap;
 extern crate java_properties;
+extern crate regex;
 
 use clap::{Arg, ArgMatches, App, SubCommand};
 use std::io::Write;
 use std::ffi::OsString;
+use regex::Regex;
 
 use result::*;
 
@@ -46,6 +48,24 @@ fn main() {
                          .index(1)
                          .help("name of environment to show")
                          )
+                    .arg(Arg::with_name("powershell")
+                        .short("p")
+                        .required(false)
+                        .takes_value(false)
+                        .help("print the env vars in powershell syntax for piping to Invoke-Expression")
+                        )
+                    .arg(Arg::with_name("fish")
+                        .short("f")
+                        .required(false)
+                        .takes_value(false)
+                        .help("print the env vars in fish shell syntax with the set keyword")
+                        )
+                    .arg(Arg::with_name("export")
+                        .short("e")
+                        .required(false)
+                        .takes_value(false)
+                        .help("prepend variable assignments with export (for posix shells) or env: for powershell")
+                        )
                     )
         .subcommand(SubCommand::with_name("new")
                     .about("Creates new environment")
@@ -170,10 +190,17 @@ fn remove_env(args: &ArgMatches) -> Result<()> {
 
 fn show_env(args: &ArgMatches) -> Result<()> {
     let env_name = args.value_of("name").unwrap();
-
+    
     let env = try!(fs::load_installed_env_file(env_name));
-
-    print_env(&env);
+    let export_vars = args.is_present("export");
+    
+    if args.is_present("powershell") {
+        print_env_ps(&env, export_vars);
+    } else if args.is_present("fish") {
+        print_env_fish(&env, export_vars);
+    } else {
+        print_env(&env, export_vars);
+    }
 
     Ok(())
 }
@@ -233,10 +260,55 @@ fn get_envs_list() -> Result<Vec<String>> {
     Ok(maybe_env_list)
 }
 
-fn print_env(env: &fs::REnv) {
+fn print_env(env: &fs::REnv, export_vars: bool) {
+    let re = shell_re();
+    
+    let export_prefix = if export_vars { "export " } else { "" };
+    
     for (k,v) in &env.vars {
-        println!("{} = {}", k, v);
+        let escaped = re.replace_all(v, shell_esc());
+        println!("{}{}=\"{}\"", export_prefix, k, escaped);
     }
+}
+
+fn print_env_fish(env: &fs::REnv, export_vars: bool) {
+    let re = shell_re();
+    
+    let export_prefix = if export_vars { "set -x" } else { "set" };
+    
+    for (k,v) in &env.vars {
+        let escaped = re.replace_all(v, shell_esc());
+        println!("{} {} \"{}\"", export_prefix, k, escaped);
+    }
+}
+
+fn print_env_ps(env: &fs::REnv, export_vars: bool) {
+    let re = powershell_re();
+    
+    let export_prefix = if export_vars { "env:" } else { "" };
+    
+    for (k,v) in &env.vars {
+        let escaped = re.replace_all(v, powershell_esc());
+        println!("${}{} = \"{}\"", export_prefix, k, escaped);
+    }
+}
+
+fn shell_re() -> Regex {
+    let pattern = r#"[\\"]"#;
+    Regex::new(pattern).unwrap()
+}
+
+fn shell_esc() -> &'static str {
+    "\\$0"
+}
+    
+fn powershell_re() -> Regex {
+    let pattern = r#"[\0\r\n\t`"]"#;
+    Regex::new(pattern).unwrap()
+}
+
+fn powershell_esc() -> &'static str {
+    "`$0"
 }
 
 fn init_dirs() -> Result<()> {

@@ -1,11 +1,13 @@
 extern crate clap;
 extern crate java_properties;
 extern crate regex;
+extern crate glob;
 
 use clap::{Arg, ArgMatches, App, SubCommand};
 use std::io::Write;
 use std::ffi::OsString;
 use regex::Regex;
+use glob::Pattern;
 
 use result::*;
 
@@ -16,7 +18,7 @@ pub mod os;
 fn main() {
     let mut stderr = std::io::stderr();
 
-    let matches = App::new("rsenv")
+    let matches = App::new("renv")
         .version("1.0")
         .author("Chris Dawes <cmsd2@cantab.net>")
         .about("Manages shell environments")
@@ -141,8 +143,10 @@ fn main() {
 }
 
 fn run_subcommand(matches: &ArgMatches) -> Result<()> {
+    let config = load_or_create_config(matches).unwrap_or_default();
+
     match matches.subcommand() {
-        ("list", Some(_)) => list_envs(),
+        ("list", Some(_)) => list_envs(&config),
         ("install", Some(sub_matches)) => install_env(sub_matches),
         ("remove", Some(sub_matches)) => remove_env(sub_matches),
         ("exec", Some(sub_matches)) => exec_command(sub_matches),
@@ -153,10 +157,27 @@ fn run_subcommand(matches: &ArgMatches) -> Result<()> {
     }
 }
 
-fn list_envs() -> Result<()> {
+#[derive(Clone, Debug)]
+struct Config {
+    ignore_patterns: Vec<String>
+}
+
+impl Default for Config {
+    fn default() -> Config {
+        Config {
+            ignore_patterns: vec!["*~", ".*", "#*"].into_iter().map(|s| s.to_owned()).collect()
+        }
+    }
+}
+
+fn load_or_create_config(_matches: &ArgMatches) -> Option<Config> {
+    None
+}
+
+fn list_envs(config: &Config) -> Result<()> {
     try!(init_dirs());
     
-    for e in try!(get_envs_list()) {
+    for e in try!(get_envs_list(config)) {
         println!("{}", e);
     }
 
@@ -248,16 +269,23 @@ fn file_name_to_env_name<'a>(file_name: &'a str) -> Option<&'a str> {
     }
 }
 
-fn get_envs_list() -> Result<Vec<String>> {
+fn get_envs_list(config: &Config) -> Result<Vec<String>> {
     let env_file_list = try!(fs::list_env_files());
 
     let maybe_env_list = env_file_list
         .iter()
+        .filter(|s| !matches_ignore(config, s))
         .flat_map(|file_name| file_name_to_env_name(file_name))
         .map(|s| s.to_owned())
         .collect();
     
     Ok(maybe_env_list)
+}
+
+fn matches_ignore(config: &Config, file_name: &str) -> bool {
+    let patterns: Vec<Pattern> = config.ignore_patterns.iter().flat_map(|s| Pattern::new(s)).collect();
+
+    patterns.iter().find(|p| p.matches(file_name)).is_some()
 }
 
 fn print_env(env: &fs::REnv, export_vars: bool) {

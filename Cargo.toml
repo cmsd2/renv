@@ -1,6 +1,6 @@
 [package]
 name = "renv"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Chris Dawes <cmsd2@cantab.net>"]
 license = "MIT/Apache-2.0"
 description = "Environment variable loader"
@@ -10,6 +10,8 @@ repository = "https://github.com/cmsd2/renv"
 clap = "2.1.2"
 java-properties = "0.1.1"
 regex = "0.1.55"
+glob = "0.2.11"
+rustc-serialize = "0.3.19"
 
 [features]
 unstable = []

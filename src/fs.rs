@@ -156,7 +156,7 @@ pub fn assert_file_not_exists(file_path: &Path) -> Result<()> {
 pub fn spawn_command<S>(command_str: &OsStr, args: &[S], env: &REnv) -> Result<()> where S: AsRef<OsStr> {
         
     let mut command = process::Command::new(command_str);
-    command.args(&args);
+    command.args(args);
 
     for (k,v) in &env.vars {
         command.env(k, v);
